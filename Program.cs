@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 
@@ -335,8 +335,8 @@ namespace CSharpParser
 
     public abstract class SolutionBase : IDisposable
     {
-        private readonly InStream _in;
-        private readonly OutStream _out;
+        private InStream _in;
+        private OutStream _out;
 
         protected SolutionBase()
         {
@@ -397,7 +397,23 @@ namespace CSharpParser
 
         public void Dispose()
         {
+            _in.Dispose();
             _out.Dispose();
+        }
+
+        public void Freopen(string path, FileAccess access)
+        {
+            switch (access)
+            {
+                case FileAccess.Read:
+                    _in.Dispose();
+                    _in = InStream.FromFile(path);
+                    break;
+                case FileAccess.Write:
+                    _out.Dispose();
+                    _out = OutStream.FromFile(path);
+                    break;
+            }
         }
 
         protected abstract void Solve();
