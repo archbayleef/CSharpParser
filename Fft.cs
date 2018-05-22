@@ -58,32 +58,8 @@ namespace CSharpParser
 
 		public int[] Apply(int[] a, bool forward = true)
 		{
-			var n2 = _n / 2;
 			var c = new int[_n];
-			var e = new int[n2];
-			var o = new int[n2];
-			var g = forward ? _g : _og;
-			for (var i = 0; i < _n; i++)
-				c[i] = _rev[i] < a.Length ? a[_rev[i]] : 0;
-			for (var i = _lg - 1; i >= 0; i--)
-			{
-				for (var j = 0; j < n2; j++)
-				{
-					e[j] = c[j << 1];
-					o[j] = c[(j << 1) | 1];
-				}
-				for (var j = 0; j < n2; j++)
-				{
-					c[j] = (int)((e[j] + (long)o[j] * g[j >> i << i]) % _m);
-					c[n2 + j] = e[j] * 2 - c[j];
-					if (c[n2 + j] >= _m) c[n2 + j] -= _m;
-					else if (c[n2 + j] < 0) c[n2 + j] += _m;
-				}
-			}
-			if (forward) return c;
-			var m = _m - _m / _n;
-			for (var i = 0; i < _n; i++)
-				c[i] = (int)((long)c[i] * m % _m);
+			Apply(a, c, forward);
 			return c;
 		}
 
