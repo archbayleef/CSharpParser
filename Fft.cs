@@ -4,10 +4,10 @@ namespace CSharpParser
 {
 	public class Fft
 	{
-		private readonly int _lg, _n, _m;
-		private readonly int[] _g, _og, _rev;
+		private readonly int _lg, _n;
+		private readonly int[] _g, _og, _rev, _e;
 
-		public int Modulo { get { return _m; } }
+		public int Modulo { get; }
 
 		private static int ModPow(int x, int k, int m)
 		{
@@ -43,15 +43,16 @@ namespace CSharpParser
 		{
 			_lg = lg;
 			_n = 1 << lg;
-			_m = m;
-			var g = ModPow(Generator(_m), _m >> lg, _m);
+			Modulo = m;
+			var g = ModPow(Generator(Modulo), Modulo >> lg, Modulo);
 			_g = new int[_n];
 			_og = new int[_n];
 			_rev = new int[_n];
+			_e = new int[_n];
 			_g[0] = _og[0] = 1;
 			for (var i = 1; i < _n; i++)
 			{
-				_g[i] = _og[_n - i] = (int)((long)_g[i - 1] * g % _m);
+				_g[i] = _og[_n - i] = (int)((long)_g[i - 1] * g % Modulo);
 				_rev[i] = _rev[i / 2] / 2 + (i % 2 << _lg - 1);
 			}
 		}
@@ -66,29 +67,31 @@ namespace CSharpParser
 		public void Apply(int[] a, int[] c, bool forward = true)
 		{
 			var n2 = _n / 2;
-			var e = new int[n2];
-			var o = new int[n2];
+			var e = _e;
 			var g = forward ? _g : _og;
-			for (var i = 0; i < _n; i++)
-				c[i] = a[_rev[i]];
+			if (_lg % 2 == 1)
+			{
+				for (var i = 0; i < _n; i++)
+					e[i] = a[_rev[i]];
+				Algorithm.Swap(ref e, ref c);
+			}
+			else
+				for (var i = 0; i < _n; i++)
+					c[i] = a[_rev[i]];
 			for (var i = _lg - 1; i >= 0; i--)
 			{
 				for (var j = 0; j < n2; j++)
 				{
-					e[j] = c[j << 1];
-					o[j] = c[(j << 1) | 1];
+					e[j] = (int)((c[2 * j] + (long)c[2 * j + 1] * g[j >> i << i]) % Modulo);
+					e[n2 + j] = c[2 * j] * 2 - e[j] - Modulo;
+					e[n2 + j] += e[n2 + j] >> 31 & Modulo;
 				}
-				for (var j = 0; j < n2; j++)
-				{
-					c[j] = (int)((e[j] + (long)o[j] * g[j >> i << i]) % _m);
-					c[n2 + j] = e[j] * 2 - c[j] - _m;
-					c[n2 + j] += c[n2 + j] >> 31 & _m;
-				}
+				Algorithm.Swap(ref e, ref c);
 			}
 			if (forward) return;
-			var m = _m - _m / _n;
+			var m = Modulo - Modulo / _n;
 			for (var i = 0; i < _n; i++)
-				c[i] = (int)((long)c[i] * m % _m);
+				c[i] = (int)((long)c[i] * m % Modulo);
 		}
 	}
 }
