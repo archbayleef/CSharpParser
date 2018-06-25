@@ -81,9 +81,8 @@ namespace CSharpParser
 				for (var j = 0; j < n2; j++)
 				{
 					c[j] = (int)((e[j] + (long)o[j] * g[j >> i << i]) % _m);
-					c[n2 + j] = e[j] * 2 - c[j];
-					if (c[n2 + j] >= _m) c[n2 + j] -= _m;
-					else if (c[n2 + j] < 0) c[n2 + j] += _m;
+					c[n2 + j] = e[j] * 2 - c[j] - _m;
+					c[n2 + j] += c[n2 + j] >> 31 & _m;
 				}
 			}
 			if (forward) return;
