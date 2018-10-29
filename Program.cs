@@ -319,10 +319,10 @@ namespace CSharpParser
             OutputStream.WriteLine(o);
         }
 
-        public void PrintArray<T>(IList<T> a, string between = " ", string after = "\n", bool printCount = false)
+        public void PrintArray<T>(IList<T> a, string between = " ", string after = "\n", bool printCount = false, string afterCount = "\n")
         {
             if (printCount)
-                PrintLine(a.Count);
+                Print("{0}{1}", a.Count, afterCount);
             for (var i = 0; i < a.Count; i++)
                 Print("{0}{1}", a[i], i == a.Count - 1 ? after : between);
         }
@@ -365,9 +365,9 @@ namespace CSharpParser
             return _in.NextArray<T>(length, width);
         }
 
-        protected void PrintArray<T>(IList<T> a, string between = " ", string after = "\n", bool printCount = false)
+        protected void PrintArray<T>(IList<T> a, string between = " ", string after = "\n", bool printCount = false, string afterCount = "\n")
         {
-            _out.PrintArray(a, between, after, printCount);
+            _out.PrintArray(a, between, after, printCount, afterCount);
         }
 
         public void Print(string format, params object[] args)
