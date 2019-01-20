@@ -4,7 +4,7 @@ namespace CSharpParser
 {
 	public class Fft
 	{
-		private readonly int _lg;
+		private readonly int _lg, _montgomeryLog, _montgomeryMask,_montgomeryCoef;
 		private readonly int[] _g, _og, _rev, _e;
 
 		public int Modulo { get; }
@@ -45,17 +45,31 @@ namespace CSharpParser
 			_lg = lg;
 			Length = 1 << lg;
 			Modulo = m;
+			for (_montgomeryLog = 0; 1 << _montgomeryLog < Modulo; _montgomeryLog++) ;
+			_montgomeryMask = ~-(1 << _montgomeryLog);
+			_montgomeryCoef = Modulo - 2;
 			var g = ModPow(Generator(Modulo), Modulo >> lg, Modulo);
 			_g = new int[Length];
 			_og = new int[Length];
 			_rev = new int[Length];
 			_e = new int[Length];
-			_g[0] = _og[0] = 1;
+			_g[0] = _og[0] = (1 << _montgomeryLog) % Modulo;
 			for (var i = 1; i < Length; i++)
 			{
 				_g[i] = _og[Length - i] = (int)((long)_g[i - 1] * g % Modulo);
 				_rev[i] = _rev[i / 2] / 2 + (i % 2 << _lg - 1);
 			}
+		}
+
+		public int LeftShift(int x)
+		{
+			return (int)(((long)x << _montgomeryLog) % Modulo);
+		}
+
+		public int RightShift(long x)
+		{
+			var result = (int)(x + (_montgomeryCoef * x & _montgomeryMask) * Modulo >> _montgomeryLog) - Modulo;
+			return result + (result >> 31 & Modulo);
 		}
 
 		public void Modify(int[] a, bool forward = true)
@@ -77,7 +91,7 @@ namespace CSharpParser
 
 		public void Apply(int[] a, int[] c, bool forward = true)
 		{
-			var e = _e;			
+			var e = _e;
 			if (_lg % 2 == 1)
 			{
 				for (var i = 0; i < Length; i++)
@@ -98,17 +112,18 @@ namespace CSharpParser
 			{
 				for (var j = 0; j < n2; j++)
 				{
-					e[j] = (int)((c[2 * j] + (long)c[2 * j + 1] * g[j >> i << i]) % Modulo);
-					e[n2 + j] = c[2 * j] * 2 - e[j] - Modulo;
-					e[n2 + j] += e[n2 + j] >> 31 & Modulo;
+					var mm = RightShift((long)c[2 * j + 1] * g[j >> i << i]);
+					e[j] = c[2 * j] + mm - Modulo;
+					e[j] += e[j] >> 31 & Modulo;
+					e[n2 + j] = c[2 * j] - mm;
 					e[n2 + j] += e[n2 + j] >> 31 & Modulo;
 				}
 				Algorithm.Swap(ref e, ref c);
 			}
 			if (forward) return;
-			var m = Modulo - Modulo / Length;
+			var m = ((long)(Modulo - Modulo / Length) << _montgomeryLog) % Modulo;
 			for (var i = 0; i < Length; i++)
-				c[i] = (int)((long)c[i] * m % Modulo);
+				c[i] = RightShift(c[i] * m);
 		}
 	}
 }
