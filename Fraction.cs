@@ -27,15 +27,8 @@ namespace CSharpParser
 			Simplify();
 		}
 
-		public BigInteger Numerator
-		{
-			get;private set;
-		}
-
-		public BigInteger Denominator
-		{
-			get; private set;
-		}
+		public BigInteger Numerator { get; private set; }
+		public BigInteger Denominator { get; private set; }
 
 		public static implicit operator Fraction(int value)
 		{
@@ -75,34 +68,24 @@ namespace CSharpParser
 
 		public static Fraction operator +(Fraction f1, Fraction f2)
 		{
-			var f = new Fraction(f1.Numerator * f2.Denominator + f1.Denominator * f2.Numerator,
-				f1.Denominator * f2.Denominator);
-			f.Simplify();
-			return f;
+			return new Fraction(f1.Numerator * f2.Denominator + f1.Denominator * f2.Numerator, f1.Denominator * f2.Denominator);
 		}
 
 		public static Fraction operator -(Fraction f1, Fraction f2)
 		{
-			var f = new Fraction(f1.Numerator * f2.Denominator - f1.Denominator * f2.Numerator,
-				f1.Denominator * f2.Denominator);
-			f.Simplify();
-			return f;
+			return new Fraction(f1.Numerator * f2.Denominator - f1.Denominator * f2.Numerator, f1.Denominator * f2.Denominator);
 		}
 
 		public static Fraction operator *(Fraction f1, Fraction f2)
 		{
-			var f = new Fraction(f1.Numerator * f2.Numerator, f1.Denominator * f2.Denominator);
-			f.Simplify();
-			return f;
+			return new Fraction(f1.Numerator * f2.Numerator, f1.Denominator * f2.Denominator);
 		}
 
 		public static Fraction operator /(Fraction f1, Fraction f2)
 		{
 			if (f2.Denominator == 0)
 				throw new DivideByZeroException();
-			var f = new Fraction(f1.Numerator * f2.Denominator, f1.Denominator * f2.Numerator);
-			f.Simplify();
-			return f;
+			return new Fraction(f1.Numerator * f2.Denominator, f1.Denominator * f2.Numerator);
 		}
 
 		public static Fraction operator -(Fraction f1)
@@ -165,7 +148,7 @@ namespace CSharpParser
 			return new Fraction(BigInteger.Pow(f.Numerator, k), BigInteger.Pow(f.Denominator, k));
 		}
 
-        public static Fraction Zero { get; } = new Fraction(0);
-        public static Fraction One { get; } = new Fraction(1);
+		public static Fraction Zero { get; } = new Fraction(0);
+		public static Fraction One { get; } = new Fraction(1);
 	}
 }
